@@ -1,8 +1,6 @@
 # WordPress + FrankenPHP Docker Image
 
-An enterprise-grade WordPress image built for scalability. It uses the new FrankenPHP App Server without needing PHP-FPM. Popular caching extensions included (Redis, Memcached, opcache). It also runs on a non-root www-data user for modern security. Composer is also included if desired to add dependencies & run scripts via an extended image.
-
-The goal for this WordPress Docker image repository is to include everything needed for the majority of the use cases. You can deploy your WordPress projects directly from this image or use it as a starter for a custom image.
+An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP server bundled with Caddy. Lightning-fast automated caching is provided through the cache-handler Caddy module. Default is set to local wp-content/cache location but can switch to other distributed options such as Redis if desired.
 
 ## Whats Included
 
@@ -10,7 +8,12 @@ The goal for this WordPress Docker image repository is to include everything nee
 
 - [WordPress](https://hub.docker.com/_/wordpress "WordPress Docker Image")
 - [FrankenPHP](https://hub.docker.com/r/dunglas/frankenphp "FrankenPHP Docker Image")
-- [Caddyfile](https://caddyserver.com/ "Caddy Server")
+- [Caddy](https://caddyserver.com/ "Caddy Server")
+
+### Caching
+
+opcache
+cache-handler CaddyModule
 
 ### Environment Variables
 
