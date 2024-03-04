@@ -2,6 +2,10 @@
 
 An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP server bundled with Caddy. Lightning-fast automated caching is provided through the cache-handler Caddy module. Default is set to local wp-content/cache location but can switch to other distributed options such as Redis if desired.
 
+## Getting Started
+
+- [Docker Hub Source](https://hub.docker.com/repository/docker/stephenmiracle/frankenwp/general "Docker Hub")
+
 ## Whats Included
 
 ### Services
