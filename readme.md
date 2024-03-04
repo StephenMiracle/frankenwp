@@ -21,7 +21,6 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 
 ### Environment Variables
 
-- DEBUG // Flag to set WP_DEBUG & debug mode on server. (1 or 0)
 - SERVER_NAME // Domain to set. Will request a SSL cert for it. Can also set to a port like :80, :8095
 - DB_NAME
 - DB_USER
@@ -30,8 +29,6 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - DB_ROOT_PASSWORD
 - DB_TABLE_PREFIX
 - WP_DEBUG
-- DEBUG
-- WP_VERSION
 - FORCE_HTTPS
 - WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
 
