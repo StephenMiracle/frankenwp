@@ -5,6 +5,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 ## Getting Started
 
 - [Docker Hub Source](https://hub.docker.com/repository/docker/stephenmiracle/frankenwp/general "Docker Hub")
+- [Docker Compose](https://github.com/StephenMiracle/wordpress-docker-frankenphp, "Docker Compose Project")
 
 ## Whats Included
 
@@ -13,6 +14,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - [WordPress](https://hub.docker.com/_/wordpress "WordPress Docker Image")
 - [FrankenPHP](https://hub.docker.com/r/dunglas/frankenphp "FrankenPHP Docker Image")
 - [Caddy](https://caddyserver.com/ "Caddy Server")
+-
 
 ### Caching
 
