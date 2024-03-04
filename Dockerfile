@@ -31,7 +31,7 @@ FROM dunglas/frankenphp AS base
 LABEL org.opencontainers.image.title=FrankenWP
 LABEL org.opencontainers.image.description="Optimized WordPress containers to run everywhere. Built with FrankenPHP & Caddy."
 LABEL org.opencontainers.image.url=https://wpeverywhere.com
-LABEL org.opencontainers.image.source=https://github.com/wpeverywhere/frankenwp
+LABEL org.opencontainers.image.source=https://github.com/StephenMiracle/frankenwp
 LABEL org.opencontainers.image.licenses=MIT
 LABEL org.opencontainers.image.vendor="Stephen Miracle"
 
