@@ -12,8 +12,8 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 
 ### Caching
 
-opcache
-cache-handler CaddyModule
+- opcache
+- cache-handler CaddyModule
 
 ### Environment Variables
 
