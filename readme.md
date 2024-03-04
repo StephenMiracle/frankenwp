@@ -31,10 +31,6 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - FORCE_HTTPS
 - WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
 
-This image copies content from the base WordPress image. Relevant environment variables can be found in the parent repository.
-
-[Click here for the standard WordPress Docker Repo.](https://hub.docker.com/_/wordpress "WordPress Docker Images")
-
 ## Questions
 
 ### Why Not Just Use Standard WordPress Images?
