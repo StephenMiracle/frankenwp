@@ -140,10 +140,6 @@ RUN useradd -D ${USER} && \
     setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp
 # Caddy requires write access to /data/caddy and /config/caddy
 
-# Healthcheck URL when behind load balancer or proxy
-COPY _hc.php /var/www/html/_hc.php
-
-
 
 RUN sed -i \
     -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
