@@ -77,9 +77,10 @@ RUN install-php-extensions \
     zip \
     opcache
 
-RUN \
-    set -eux; \
-    install-php-extensions https://codeload.github.com/Imagick/imagick/tar.gz/7088edc353f53c4bc644573a79cdcd67a726ae16
+
+RUN pecl install imagick-3.6.0; \
+    docker-php-ext-enable imagick; \
+    rm -r /tmp/pear;
 
 
 # Or production:
