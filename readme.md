@@ -30,6 +30,8 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - DB_TABLE_PREFIX
 - WP_DEBUG
 - FORCE_HTTPS
+- CACHE_AGE
+- STATIC_CACHE_AGE
 - WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
 
 ## Questions
