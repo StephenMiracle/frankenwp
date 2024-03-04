@@ -39,8 +39,6 @@
 	header @wordpressadmin Cache-Control no-store
 
 	header Cache-Control max-age=2400
-	header Keep-Alive "timeout=5, max=100"
-	header Connection keep-alive
 	#log {
 	#	# Redact the authorization query parameter that can be set by Mercure
 	#	format filter {
