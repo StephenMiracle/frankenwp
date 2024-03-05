@@ -25,22 +25,20 @@
 # Allowing all hosts on port 80 for health checks, local dev & cases where the hostname is unknown.
 {$SERVER_NAME:localhost} {
 	@static {
-	file
-	path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff
+		file
+		path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff
 	}
 
 	# wp-admin, wp-login, wp-cron, wp-json, wp-*, xmlrpc, etc.
 	# https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#request-matching
 	@wordpressadmin {
-	path /xmlrpc /wp-* 
+		path /xmlrpc /wp-*
 	}
 
 	header @static Cache-Control max-age=360000
-	header @wordpressadmin Cache-Control no-cache
+	header @wordpressadmin Cache-Control no-store
 
-	header           Cache-Control max-age=2400
-	header 		     Keep-Alive "timeout=5, max=100"
-	header           Connection keep-alive
+	header Cache-Control max-age=2400
 	#log {
 	#	# Redact the authorization query parameter that can be set by Mercure
 	#	format filter {
