@@ -14,6 +14,9 @@
 	order vulcain after reverse_proxy
 	order php_server before file_server
 	order php before file_server
+	order cache before rewrite
+
+	cache
 }
 
 {$CADDY_EXTRA_CONFIG}
@@ -72,5 +75,16 @@
 	#vulcain
 
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+	cache {
+		nuts {
+			path /var/www/html/wp-content/cache
+		}
+		regex {
+			exclude  /wp-*
+		}
+		ttl {$CACHE_AGE:6000}s
+		cache_name site
+	}
+	
 	php_server
 }
