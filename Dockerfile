@@ -83,8 +83,9 @@ RUN pecl install imagick-3.6.0; \
     rm -r /tmp/pear;
 
 
-# Or production:
+
 RUN cp $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+COPY php.ini $PHP_INI_DIR/conf.d/wp.ini
 
 COPY --from=wp /usr/src/wordpress /usr/src/wordpress
 COPY --from=wp /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d/
@@ -133,7 +134,7 @@ RUN sed -i \
 
 
 # Add $_SERVER['ssl'] = true; when env USE_SSL = true is set to the wp-config.php file here: /usr/local/bin/wp-config-docker.php
-RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; }/g' /usr/src/wordpress/wp-config-docker.php
+RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; define( "FS_METHOD", "direct" ); set_time_limit(300); }/g' /usr/src/wordpress/wp-config-docker.php
 
 
 RUN useradd -D ${USER} && \
