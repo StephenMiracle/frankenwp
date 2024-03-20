@@ -3,7 +3,6 @@ ARG PHP_VERSION=8.3
 ARG USER=www-data
 
 FROM wordpress:$WORDPRESS_VERSION as wp
-
 FROM --platform=linux/arm64 dunglas/frankenphp AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
@@ -56,8 +55,8 @@ RUN install-php-extensions \
     opcache
 
 
-RUN pecl install imagick-3.6.0; \
-    install-php-extensions imagick; \
+RUN pecl install imagick-6.9; \
+    docker-php-ext-enable imagick; \
     rm -r /tmp/pear;
 
 
