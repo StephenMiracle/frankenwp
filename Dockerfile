@@ -55,7 +55,7 @@ RUN install-php-extensions \
     opcache
 
 
-RUN pecl install imagick; \
+RUN echo '' | pecl install imagick; \
     docker-php-ext-enable imagick; \
     rm -r /tmp/pear;
 
