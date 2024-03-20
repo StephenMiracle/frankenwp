@@ -55,7 +55,7 @@ RUN install-php-extensions \
     opcache
 
 
-RUN pecl install imagick-6.9; \
+RUN pecl install imagick; \
     docker-php-ext-enable imagick; \
     rm -r /tmp/pear;
 
@@ -113,6 +113,11 @@ RUN sed -i \
 # Add $_SERVER['ssl'] = true; when env USE_SSL = true is set to the wp-config.php file here: /usr/local/bin/wp-config-docker.php
 RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; define( "FS_METHOD", "direct" ); set_time_limit(300); }/g' /usr/src/wordpress/wp-config-docker.php
 
+# Adding WordPress CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp && \
+    wp --allow-root --version
 
 RUN useradd -D ${USER} && \
     # Caddy requires an additional capability to bind to port 80 and 443
