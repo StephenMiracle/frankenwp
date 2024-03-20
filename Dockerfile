@@ -2,28 +2,6 @@ ARG WORDPRESS_VERSION=latest
 ARG PHP_VERSION=8.3
 ARG USER=www-data
 
-
-FROM --platform=linux/arm64 dunglas/frankenphp:latest-builder as builder
-
-# Copy xcaddy in the builder image
-COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
-
-
-# CGO must be enabled to build FrankenPHP
-ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS='-ldflags="-w -s" -trimpath'
-
-
-RUN xcaddy build \
-    --output /usr/local/bin/frankenphp \
-    --with github.com/dunglas/frankenphp=./ \
-    --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-    # Mercure and Vulcain are included in the official build, but feel free to remove them
-    --with github.com/dunglas/mercure/caddy \
-    --with github.com/dunglas/vulcain/caddy  \
-    --with github.com/dunglas/caddy-cbrotli \
-    # Add extra Caddy modules here
-    --with github.com/caddyserver/cache-handler
-
 FROM wordpress:$WORDPRESS_VERSION as wp
 
 FROM --platform=linux/arm64 dunglas/frankenphp AS base
@@ -37,7 +15,7 @@ LABEL org.opencontainers.image.vendor="Stephen Miracle"
 
 
 # Replace the official binary by the one contained your custom modules
-COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
+COPY --from=stephenmiracle/frankenwp:builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 ENV WP_DEBUG=${DEBUG:+1}
 ENV FORCE_HTTPS=0
 ENV CACHE_AGE=6000
