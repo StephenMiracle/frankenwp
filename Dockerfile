@@ -3,7 +3,7 @@ ARG PHP_VERSION=8.3
 ARG USER=www-data
 
 
-FROM dunglas/frankenphp:latest-builder as builder
+FROM --platform=linux/arm64 dunglas/frankenphp:latest-builder as builder
 
 # Copy xcaddy in the builder image
 COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
@@ -26,7 +26,7 @@ RUN xcaddy build \
 
 FROM wordpress:$WORDPRESS_VERSION as wp
 
-FROM dunglas/frankenphp AS base
+FROM --platform=linux/arm64 dunglas/frankenphp AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
 LABEL org.opencontainers.image.description="Optimized WordPress containers to run everywhere. Built with FrankenPHP & Caddy."
