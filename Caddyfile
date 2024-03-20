@@ -1,28 +1,28 @@
 {
-        local_certs
-        auto_https disable_redirects # This is required to avoid redirect loops when using a reverse proxy and cloud load balancers.
-        {$CADDY_GLOBAL_OPTIONS}
+	local_certs
+	auto_https disable_redirects # This is required to avoid redirect loops when using a reverse proxy and cloud load balancers.
+	{$CADDY_GLOBAL_OPTIONS}
 
-        frankenphp {
-                #worker /path/to/your/worker.php
-                {$FRANKENPHP_CONFIG}
-        }
+	frankenphp {
+		#worker /path/to/your/worker.php
+		{$FRANKENPHP_CONFIG}
+	}
 
-        # https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
-        order mercure after encode
-        order vulcain after reverse_proxy
-        order php_server before file_server
-        order php before file_server
-        order cache before rewrite
-        order request_header before cache
+	# https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
+	order mercure after encode
+	order vulcain after reverse_proxy
+	order php_server before file_server
+	order php before file_server
+	order cache before rewrite
+	order request_header before cache
 
-    cache {
+	cache {
 		mode bypass
 		allowed_http_verbs GET POST PURGE
 		api {
 			basepath /{$BASE_SERVER_API_PATH:__snapi}
 			souin {
-			basepath /{$CACHE_API_DIR:__sn}
+				basepath /{$CACHE_API_DIR:__sn}
 			}
 		}
 		nuts {
@@ -33,47 +33,44 @@
 			disable_host
 		}
 		regex {
-				exclude  /wp-*|/*\?.*|/favicon*
+			exclude /wp-*|/*\?.*|/favicon*
 		}
 	}
 }
 
 {$CADDY_EXTRA_CONFIG}
 
-
-
 ## Need to set all hosts with port for the cloud.
 # You may not have the hostname being called due to dynamic IPs and load balancers.
 # Allowing all hosts on port 80 for health checks, local dev & cases where the hostname is unknown.
 {$SERVER_NAME:localhost} {
-        @static {
-                file
-                path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff
-        }
+	@static {
+		file
+		path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff
+	}
 
+	root * /var/www/html/
+	encode br zstd gzip
 
+	# Uncomment the following lines to enable Mercure and Vulcain modules
+	#mercure {
+	#       # Transport to use (default to Bolt)
+	#       transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
+	#       # Publisher JWT key
+	#       publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+	#       # Subscriber JWT key
+	#       subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+	#       # Allow anonymous subscribers (double-check that it's what you want)
+	#       anonymous
+	#       # Enable the subscription API (double-check that it's what you want)
+	#       subscriptions
+	#       # Extra directives
+	#       {$MERCURE_EXTRA_DIRECTIVES}
+	#}
+	#vulcain
 
-        root * /var/www/html/
-        encode br zstd gzip
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
-        # Uncomment the following lines to enable Mercure and Vulcain modules
-        #mercure {
-        #       # Transport to use (default to Bolt)
-        #       transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
-        #       # Publisher JWT key
-        #       publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
-        #       # Subscriber JWT key
-        #       subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-        #       # Allow anonymous subscribers (double-check that it's what you want)
-        #       anonymous
-        #       # Enable the subscription API (double-check that it's what you want)
-        #       subscriptions
-        #       # Extra directives
-        #       {$MERCURE_EXTRA_DIRECTIVES}
-        #}
-        #vulcain
-
-        {$CADDY_SERVER_EXTRA_DIRECTIVES}
-
-        php_server
+	cache 
+	php_server
 }

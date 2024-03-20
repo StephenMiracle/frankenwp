@@ -79,7 +79,7 @@ RUN install-php-extensions \
 
 
 RUN pecl install imagick-3.6.0; \
-    docker-php-ext-enable imagick; \
+    install-php-extensions imagick; \
     rm -r /tmp/pear;
 
 
@@ -139,9 +139,8 @@ RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "o
 RUN useradd -D ${USER} && \
     # Caddy requires an additional capability to bind to port 80 and 443
     setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp
+
 # Caddy requires write access to /data/caddy and /config/caddy
-
-
 RUN sed -i \
     -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
     -e 's/php-fpm/frankenphp/g' \
