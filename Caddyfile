@@ -28,13 +28,6 @@
 		nuts {
 			path /var/www/html/wp-content/cache
 		}
-		ttl {$CACHE_AGE:6000}s
-		key {
-			disable_host
-		}
-		regex {
-			exclude /wp-*|/*\?.*|/favicon*
-		}
 	}
 }
 
@@ -71,6 +64,14 @@
 
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
-	cache 
+	cache {
+		ttl {$CACHE_AGE:6000}s
+		key {
+			disable_host
+		}
+		regex {
+			exclude /wp-*|/*\?.*|/favicon*
+		}
+	}
 	php_server
 }
