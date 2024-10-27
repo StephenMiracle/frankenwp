@@ -13,6 +13,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - [Standard environment with MariaDB & Docker Compose](./examples/basic/compose.yaml)
 - [Debug with XDebug & Docker Compose](./examples/debug/compose.yaml)
 - [SQLite with Docker Compose](./examples/sqlite/compose.yaml)
+- [Gitpod Example](./examples/gitpod/compose.yaml)
 
 ## Whats Included
 

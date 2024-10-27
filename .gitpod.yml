@@ -1,0 +1,32 @@
+# .gitpod.yml
+
+image:
+  file: .gitpod.Dockerfile
+
+ports:
+  - port: 8100
+    visibility: public
+  - port: 3311
+  - port: 8086
+    visibility: public
+
+vscode:
+  extensions:
+    - felixfbecker.php-debug@1.16.0
+
+tasks:
+  - name: "Generate environment and start Docker Compose"
+    openMode: split-right
+    command: |
+      # Navigate to the Gitpod examples directory
+      cd examples/gitpod
+      
+      # Make generate_env.sh executable and run it to create .env file
+      chmod +x generate_env.sh
+      ./generate_env.sh
+      
+      # Start Docker Compose from the same directory
+      docker-compose up -d
+
+  - name: "Start Terminal"
+    command: clear && echo "Environment setup complete. Ready for WordPress testing on FrankenWP!"

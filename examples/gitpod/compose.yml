@@ -1,0 +1,62 @@
+services:
+  wordpress:
+    image: wpeverywhere/frankenwp:latest-php8.3
+    restart: always
+    ports:
+      - "8100:80" # HTTP
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-:80}
+      WORDPRESS_DB_HOST: ${DB_HOST:-db}
+      WORDPRESS_DB_USER: ${DB_USER:-exampleuser}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-examplepass}
+      WORDPRESS_DB_NAME: ${DB_NAME:-exampledb}
+      WORDPRESS_DEBUG: ${WP_DEBUG:-true}
+      WORDPRESS_TABLE_PREFIX: ${DB_TABLE_PREFIX:-wp_}
+      CACHE_LOC: ${CACHE_LOC:-/var/www/html/wp-content/cache}
+      TTL: ${TTL:-80000}
+      PURGE_PATH: ${PURGE_PATH:-/__cache/purge}
+      PURGE_KEY: ${PURGE_KEY:-}
+      BYPASS_HOME: ${BYPASS_HOME:-false}
+      BYPASS_PATH_PREFIXES: ${BYPASS_PATH_PREFIXES:-/wp-admin,/wp-content,/wp-includes,/wp-json,/feed}
+      CACHE_RESPONSE_CODES: ${CACHE_RESPONSE_CODES:-000}
+      CADDY_GLOBAL_OPTIONS: |
+        email myemail@sample.com
+        auto_https disable_redirects
+        debug
+      WORDPRESS_CONFIG_EXTRA: |
+          define('WP_SITEURL', '${WP_SITEURL}');
+          define('WP_HOME', '${WP_HOME}');
+          
+    #volumes:
+    #  - ./wp-content:/var/www/html/wp-content
+
+    depends_on:
+      - db
+    tty: true
+
+  db:
+    image: mariadb:latest
+    restart: always
+    ports:
+      - ${LOCAL_DB_PORT:-3311}:3306
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-exampledb}
+      MYSQL_USER: ${DB_USER:-exampleuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-examplepass}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-examplepass}
+    volumes:
+      - dbwp:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - ${LOCAL_PHPMYADMIN_PORT:-8086}:80
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-examplepass}
+    depends_on:
+      - db
+
+volumes:
+  dbwp:
