@@ -45,16 +45,18 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - `PURGE_PATH`: Create a custom route for the cache purge API path. Defaults to /\_\_cache/purge.
 - `TTL`: Defines how long objects should be stored in cache. Defaults to 6000.
 
-#### Wordpress
+#### WordPress
 
-- `DB_NAME`: The WordPress database name.
-- `DB_USER`: The WordPress database user.
-- `DB_PASSWORD`: The WordPress database password.
-- `DB_HOST`: The WordPress database host.
-- `DB_TABLE_PREFIX`: The WordPress database table prefix.
-- `WP_DEBUG`: Turns on WordPress Debug.
+- `WORDPRESS_DB_NAME`: The WordPress database name.
+- `WORDPRESS_DB_USER`: The WordPress database user.
+- `WORDPRESS_DB_PASSWORD`: The WordPress database password.
+- `WORDPRESS_DB_HOST`: The WordPress database host.
+- `WORDPRESS_TABLE_PREFIX`: The WordPress database table prefix.
+- `WORDPRESS_DEBUG`: Turns on WordPress Debug.
 - `FORCE_HTTPS`: Tells WordPress to use https on requests. This is beneficial behind load balancer. Defaults to true.
 - `WORDPRESS_CONFIG_EXTRA`: use this for adding WP_HOME, WP_SITEURL, etc
+
+See <https://hub.docker.com/_/wordpress> for more WordPress-specific configuration.
 
 ## Questions
 
