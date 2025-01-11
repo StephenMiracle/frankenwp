@@ -24,7 +24,7 @@ RUN xcaddy build \
     --with github.com/stephenmiracle/frankenwp/sidekick/middleware/cache=./cache
 
 
-FROM wordpress:$WORDPRESS_VERSION as wp
+FROM wordpress:$WORDPRESS_VERSION AS wp
 FROM dunglas/frankenphp:latest-php${PHP_VERSION} AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
