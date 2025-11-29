@@ -12,6 +12,9 @@ COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
 # CGO must be enabled for C bindings, and set build flags for optimization
 ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS='-ldflags="-w -s" -trimpath'
 
+# Allow Go toolchain auto-upgrade to handle newer Go version requirements
+ENV GOTOOLCHAIN=auto
+
 # Build FrankenPHP with xcaddy, including necessary modules
 # --with allows adding external modules to the build
 RUN xcaddy build \
