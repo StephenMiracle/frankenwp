@@ -35,18 +35,24 @@ docker run -d \
 ## Choosing Between Trixie and Bookworm
 
 ### Debian Trixie (Recommended)
-- **Latest stable Debian release**
+- **Testing Debian release** (currently testing, will become stable)
 - Newer packages and features
 - Available for: `linux/amd64`, `linux/arm64`
 - Default for `:latest` tag
+- Built on native ARM runners for faster builds
 
 ### Debian Bookworm
-- **Previous stable Debian release**
+- **Current stable Debian release**
 - More mature, wider package support
 - Available for: `linux/amd64`, `linux/arm64`, `linux/arm/v7`
 - **Required for 32-bit ARM (arm/v7)** devices like Raspberry Pi 2/3
+- Built on native ARM runners for faster builds
 
 Use Bookworm if you need ARM v7 support or prefer a more established base. Otherwise, use Trixie for the latest packages.
+
+## Performance & Build Optimization
+
+All ARM builds (arm64 and arm/v7) are built on native GitHub-hosted ARM runners (`ubuntu-24.04-arm`) for maximum performance and speed. This eliminates QEMU emulation overhead, resulting in significantly faster build times and better performance.
 
 ## Links
 
@@ -58,7 +64,7 @@ Use Bookworm if you need ARM v7 support or prefer a more established base. Other
 ### Core Components
 
 - **[WordPress](https://wordpress.org/)** - Latest version from official WordPress Docker images
-- **[FrankenPHP 1.10.1](https://frankenphp.dev/)** - Modern PHP application server
+- **[FrankenPHP](https://frankenphp.dev/)** - Modern PHP application server (custom builds from [frankenpress-src](https://github.com/notglossy/frankenpress-src))
 - **[Caddy](https://caddyserver.com/)** - Fast, secure web server with automatic HTTPS
 - **PHP Extensions** - Optimized selection for WordPress performance
 

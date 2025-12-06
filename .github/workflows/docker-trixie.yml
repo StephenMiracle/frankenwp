@@ -25,17 +25,16 @@ concurrency:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         # Only build PHP 8.4 for PRs to speed up CI, build all versions for main branch
         php-version: ${{ github.event_name == 'pull_request' && fromJSON('[8.4]') || fromJSON('[8.2, 8.3, 8.4]') }}
+        # Split platforms to use native runners (amd64 on x64, arm64 on ARM)
+        platform: ${{ github.event_name == 'pull_request' && fromJSON('["linux/amd64"]') || fromJSON('["linux/amd64", "linux/arm64"]') }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -69,7 +68,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           context: .
           tags: |
@@ -80,13 +79,12 @@ jobs:
             ${{ matrix.php-version == '8.4' && format('ghcr.io/{0}/frankenpress:trixie', github.repository_owner) || '' }}
             ${{ matrix.php-version == '8.4' && format('ghcr.io/{0}/frankenpress:latest', github.repository_owner) || '' }}
           cache-from: |
-            type=gha
+            type=gha,scope=${{ matrix.platform }}
             type=registry,ref=notglossy/frankenpress:php-${{ matrix.php-version }}-trixie
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
           build-args: |
             PHP_VERSION=${{ matrix.php-version }}
             DEBIAN_VERSION=trixie
-            FRANKENPHP_VERSION=1.10.1
           labels: ${{ steps.meta.outputs.labels }}
           provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
           sbom: ${{ github.event_name != 'pull_request' }}
