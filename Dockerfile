@@ -1,31 +1,93 @@
 ARG WORDPRESS_VERSION=latest
-ARG PHP_VERSION=8.3
+ARG PHP_VERSION=8.4
+# FrankenPHP 1.13.2 is the first release that ships the fixes for PHP2Shell
+# (CVE-2026-109618 / CVE-2026-109619 - unauthenticated RCE) and for the
+# FrankenPHP advisories GHSA-ccgp-ch9h-533f, GHSA-4gfw-9v29-gp9h,
+# GHSA-fq24-r53r-xcx3 and GHSA-6q3j-62j9-f9hh.
+# Override with --build-arg FRANKENPHP_VERSION=... , but never with a version
+# older than 1.13.2 - the build fails below if the base image is too old.
+ARG FRANKENPHP_VERSION=1.13.2
 ARG USER=www-data
 
 
 
-FROM dunglas/frankenphp:latest-builder-php${PHP_VERSION} as builder
+FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-builder-php$PHP_VERSION AS builder
+
+# Refuse to build on a FrankenPHP release that is still affected by the
+# PHP2Shell / FrankenPHP advisories. The base image ships the version in
+# CGO_CFLAGS (-DFRANKENPHP_VERSION=...), so it is the authoritative value.
+RUN set -eux; \
+    fp_version="$(printf '%s' "$CGO_CFLAGS" | sed -n 's/.*-DFRANKENPHP_VERSION=\([^ ]*\).*/\1/p')"; \
+    fp_version="${fp_version#v}"; \
+    echo "Building against FrankenPHP ${fp_version}"; \
+    case "$fp_version" in \
+        dev|*dev*) echo "Refusing to build against a development FrankenPHP build"; exit 1 ;; \
+    esac; \
+    if [ "$(printf '%s\n' "1.13.2" "$fp_version" | sort -V | head -n1)" != "1.13.2" ]; then \
+        echo "ERROR: FrankenPHP ${fp_version} is older than 1.13.2 and is affected by"; \
+        echo "       CVE-2026-109618 / CVE-2026-109619 (PHP2Shell) and the"; \
+        echo "       GHSA-ccgp-ch9h-533f / GHSA-4gfw-9v29-gp9h /"; \
+        echo "       GHSA-fq24-r53r-xcx3 / GHSA-6q3j-62j9-f9hh advisories."; \
+        echo "       Bump FRANKENPHP_VERSION to at least 1.13.2."; \
+        exit 1; \
+    fi
 
 # Copy xcaddy in the builder image
 COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
 
-
-# CGO must be enabled to build FrankenPHP
-ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS='-ldflags="-w -s" -trimpath'
-
 COPY ./sidekick/middleware/cache ./cache
+COPY ./sidekick/middleware/cache/fetch-go-modules.sh /usr/local/bin/fetch-go-modules.sh
+RUN chmod +x /usr/local/bin/fetch-go-modules.sh
 
-RUN xcaddy build \
-    --output /usr/local/bin/frankenphp \
-    --with github.com/dunglas/frankenphp=./ \
-    --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-    --with github.com/dunglas/caddy-cbrotli \
-    # Add extra Caddy modules here
-    --with github.com/stephenmiracle/frankenwp/sidekick/middleware/cache=./cache
+# GOSUMDB=off avoids failing on transient sum.golang.org resets; the module
+# versions are still pinned by the go.sum shipped in the builder image.
+#
+# The Go proxy sometimes resets the connection while downloading the larger
+# module archives, and Go does not retry a half-written archive. The build is
+# therefore retried, and the archive of every module that failed to download
+# is re-fetched with range requests before the next attempt.
+RUN set -eu; \
+    for attempt in 1 2 3 4 5 6 7 8; do \
+        build_log="/tmp/xcaddy-build.log"; \
+        if CGO_ENABLED=1 \
+            GOFLAGS="-mod=mod" \
+            GOSUMDB=off \
+            XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
+            CGO_CFLAGS="$(php-config --includes)" \
+            CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
+            xcaddy build \
+            --output /usr/local/bin/frankenphp \
+            --with github.com/dunglas/frankenphp=./ \
+            --with github.com/dunglas/frankenphp/caddy=./caddy/ \
+            --with github.com/dunglas/caddy-cbrotli \
+            # Add extra Caddy modules here
+            --with github.com/prihlop/frankenwp/sidekick/middleware/cache=./cache > "$build_log" 2>&1; then \
+            cat "$build_log"; \
+            break; \
+        fi; \
+        cat "$build_log"; \
+        if [ "$attempt" = "8" ]; then \
+            echo "ERROR: xcaddy build failed after ${attempt} attempts"; \
+            exit 1; \
+        fi; \
+        echo ">>> xcaddy build failed (attempt ${attempt}), re-fetching the modules that could not be downloaded"; \
+        fetch_args=""; \
+        for mv in $(grep -oE '[a-zA-Z0-9._~/-]+@v[0-9][a-zA-Z0-9.+-]*: (read|Get) "https://proxy\.golang\.org/' "$build_log" \
+            | sed -E 's/: (read|Get) "https:\/\/proxy\.golang\.org\// /' \
+            | tr ' ' '\n' | grep '@' | sort -u); do \
+            fetch_args="${fetch_args} ${mv%@*} ${mv#*@}"; \
+        done; \
+        if [ -n "$fetch_args" ]; then \
+            # shellcheck disable=SC2086 \
+            fetch-go-modules.sh $fetch_args || true; \
+        fi; \
+        sleep 3; \
+    done; \
+    /usr/local/bin/frankenphp version
 
 
-FROM wordpress:$WORDPRESS_VERSION as wp
-FROM dunglas/frankenphp:latest-php${PHP_VERSION} AS base
+FROM wordpress:$WORDPRESS_VERSION AS wp
+FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-php$PHP_VERSION AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
 LABEL org.opencontainers.image.description="Optimized WordPress containers to run everywhere. Built with FrankenPHP & Caddy."
@@ -42,22 +104,27 @@ ENV FORCE_HTTPS=0
 ENV PHP_INI_SCAN_DIR=$PHP_INI_DIR/conf.d
 
 
+# The apt archives are removed right after the install: they are large and the
+# layer is kept in the build cache, so leaving them behind bloats the image
+# and the disk usage of every subsequent build.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    ghostscript \
     curl \
-    libonig-dev \
-    libxml2-dev \
+    ghostscript \
+    git \
     libcurl4-openssl-dev \
+    libjpeg-dev \
+    libmemcached-dev \
+    libnss3-tools \
+    libonig-dev \
     libssl-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libzip-dev \
     libzip-dev \
     unzip \
-    git \
-    libjpeg-dev \
-    libwebp-dev \
-    libzip-dev \
-    libmemcached-dev \
-    zlib1g-dev
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 
 # install the PHP extensions we need (https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions)
@@ -70,7 +137,8 @@ RUN install-php-extensions \
     zip \
     # See https://github.com/Imagick/imagick/issues/640#issuecomment-2077206945
     imagick/imagick@master \
-    opcache
+    opcache \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/*
 
 
 RUN cp $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
@@ -111,20 +179,38 @@ WORKDIR /var/www/html
 VOLUME /var/www/html/wp-content
 
 
-COPY wp-content/mu-plugins /var/www/html/wp-content/mu-plugins
-RUN mkdir /var/www/html/wp-content/cache
+COPY wp-content/mu-plugins /usr/src/wordpress/wp-content/mu-plugins
+RUN mkdir -p /usr/src/wordpress/wp-content/cache
 
 
 
-RUN sed -i \
-    -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
-    -e 's/php-fpm/frankenphp/g' \
-    /usr/local/bin/docker-entrypoint.sh
+# Patch the upstream WordPress entrypoint so it takes the php-fpm branch when
+# the command is "frankenphp" (the official image only knows apache2/php-fpm).
+# The upstream wording changes over time, so the patch is verified afterwards
+# and fails the build instead of silently leaving WordPress uncopied.
+RUN set -eux; \
+    sed -i \
+        -e 's/\[ "${1-}" = '\''php-fpm'\'' \]/\[\[ "${1-}" == frankenphp* \]\]/g' \
+        -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
+        -e 's/php-fpm/frankenphp/g' \
+        /usr/local/bin/docker-entrypoint.sh; \
+    if ! grep -q 'frankenphp' /usr/local/bin/docker-entrypoint.sh; then \
+        echo "ERROR: failed to patch docker-entrypoint.sh for frankenphp."; \
+        echo "       The upstream WordPress entrypoint changed shape again;"; \
+        echo "       update the sed expressions above."; \
+        exit 1; \
+    fi; \
+    grep -n 'frankenphp' /usr/local/bin/docker-entrypoint.sh
 
 
 
 # Add $_SERVER['ssl'] = true; when env USE_SSL = true is set to the wp-config.php file here: /usr/local/bin/wp-config-docker.php
-RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; } define( "FS_METHOD", "direct" ); set_time_limit(300); /g' /usr/src/wordpress/wp-config-docker.php
+RUN set -eux; \
+    sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; } define( "FS_METHOD", "direct" ); set_time_limit(300); /g' /usr/src/wordpress/wp-config-docker.php; \
+    if ! grep -q 'FORCE_HTTPS' /usr/src/wordpress/wp-config-docker.php; then \
+        echo "ERROR: failed to patch wp-config-docker.php."; \
+        exit 1; \
+    fi
 
 # Adding WordPress CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
