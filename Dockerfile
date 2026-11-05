@@ -6,7 +6,7 @@ ARG PHP_VERSION=8.5
 # GHSA-fq24-r53r-xcx3 and GHSA-6q3j-62j9-f9hh.
 # Override with --build-arg FRANKENPHP_VERSION=... , but never with a version
 # older than 1.13.2 - the build fails below if the base image is too old.
-ARG FRANKENPHP_VERSION=1.13.4
+ARG FRANKENPHP_VERSION=1.13.5
 ARG USER=www-data
 
 
