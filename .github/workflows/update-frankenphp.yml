@@ -1,0 +1,49 @@
+name: Update FrankenPHP
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-frankenphp
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Check latest stable release
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/php/frankenphp/releases/latest | python3 scripts/update-frankenphp.py
+
+      - name: Create or update pull request
+        if: steps.version.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.FRANKENPHP_UPDATE_TOKEN || github.token }}
+          branch: automation/update-frankenphp
+          delete-branch: true
+          add-paths: Dockerfile
+          commit-message: "chore: bump FrankenPHP to ${{ steps.version.outputs.latest }}"
+          title: "chore: bump FrankenPHP to ${{ steps.version.outputs.latest }}"
+          body: |
+            Updates FrankenPHP from `${{ steps.version.outputs.current }}` to `${{ steps.version.outputs.latest }}`.
+
+            Release notes: https://github.com/php/frankenphp/releases
+
+            All PHP image builds use this Dockerfile pin. The minimum supported version remains 1.13.2.
+            Review the PR build and smoke-test results before merging.

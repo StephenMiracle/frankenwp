@@ -1,0 +1,15 @@
+.git
+.github
+.roo
+.vscode
+.tmp
+.air.toml
+
+# Example stacks: they only reference the root Dockerfile, they are never
+# part of the image build.
+examples
+
+# Local state / secrets.
+**/.env
+**/.env.*
+**/*.local

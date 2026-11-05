@@ -1,6 +1,7 @@
-ARG IMAGE_VERSION=beta-1.0.0
+ARG FRANKENPHP_VERSION=1.13.2
+ARG PHP_VERSION=8.4
 
-FROM stephenmiracle/frankenwp:$IMAGE_VERSION
+FROM frankenwp:local-php8.4
 
 # Install SQLite
 RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 libsqlite3-dev wget

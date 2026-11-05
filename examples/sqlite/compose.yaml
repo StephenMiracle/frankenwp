@@ -1,30 +1,38 @@
 services:
   wordpress:
-    build: .
-    restart: always
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        WORDPRESS_VERSION: ${WORDPRESS_VERSION:-latest}
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.2}
+    restart: unless-stopped
     ports:
       - "8099:80" # HTTP
     environment:
-      SERVER_NAME: ${SERVER_NAME:-:80}
-      WORDPRESS_DB_HOST: ${DB_HOST:-db}
-      WORDPRESS_DB_USER: ${DB_USER:-exampleuser}
-      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-examplepass}
-      WORDPRESS_DB_NAME: ${DB_NAME:-exampledb}
-      WORDPRESS_DEBUG: ${WP_DEBUG:-false}
-      WORDPRESS_TABLE_PREFIX: ${DB_TABLE_PREFIX:-wp_}
-      CACHE_LOC: ${CACHE_LOC:-/var/www/html/wp-content/cache}
-      TTL: ${TTL:-80000}
-      PURGE_PATH: ${PURGE_PATH:-/__cache/purge}
-      PURGE_KEY: ${PURGE_KEY:-}
-      BYPASS_HOME: ${BYPASS_HOME:-false}
-      BYPASS_PATH_PREFIXES: ${BYPASS_PATH_PREFIXES:-/wp-admin,wp-includes}
-      CACHE_RESPONSE_CODES: ${CACHE_RESPONSE_CODES:-2XX,404,403}
-      CADDY_GLOBAL_OPTIONS: |
+      - SERVER_NAME=${SERVER_NAME:-:80}
+      - WORDPRESS_DB_HOST=${DB_HOST:-db}
+      - WORDPRESS_DB_USER=${DB_USER:-exampleuser}
+      - WORDPRESS_DB_PASSWORD=${DB_PASSWORD:-examplepass}
+      - WORDPRESS_DB_NAME=${DB_NAME:-exampledb}
+      - WORDPRESS_DEBUG=${WP_DEBUG:-false}
+      - WORDPRESS_TABLE_PREFIX=${DB_TABLE_PREFIX:-wp_}
+      - CACHE_LOC=${CACHE_LOC:-/var/www/html/wp-content/cache}
+      - TTL=${TTL:-80000}
+      - PURGE_PATH=${PURGE_PATH:-/__cache/purge}
+      - PURGE_KEY=${PURGE_KEY:-}
+      - BYPASS_HOME=${BYPASS_HOME:-false}
+      - BYPASS_PATH_PREFIXES=${BYPASS_PATH_PREFIXES:-/wp-admin,wp-includes}
+      - CACHE_RESPONSE_CODES=${CACHE_RESPONSE_CODES:-2XX,404,403}
+      - |-
+        CADDY_GLOBAL_OPTIONS=
         email myemail@sample.com
         auto_https disable_redirects
-      WORDPRESS_CONFIG_EXTRA: |
-          define('WP_SITEURL', 'http://localhost:8099');
-          define('WP_HOME', 'http://localhost:8099');
+      - |-
+        WORDPRESS_CONFIG_EXTRA=
+        define('WP_SITEURL', 'http://localhost:8099');
+        define('WP_HOME', 'http://localhost:8099');
        
     volumes:
       - ./app:/var/www/html
